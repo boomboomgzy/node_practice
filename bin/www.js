@@ -6,9 +6,7 @@
 var app = require('../app');
 var debug = require('debug')('pratice:server');
 var http = require('http');
-var net=require('net');
-var fs=require("fs");
-
+var server_producer = require('../service/servercreate_service');
 
 
 /**
@@ -26,68 +24,8 @@ app.set('port', port);
 var server = http.createServer(app);
 
 
-var talk_server=net.createServer(function (serversocket) {
-  serversocket.setEncoding('utf8');
-  console.log('a client in!');
-  //socket 有读缓冲区和写缓冲区
-//client data :{uname: , utarget: ,udata:}
-  serversocket.on('data',function (data) {
-    console.log('data: ',data);
-    var getdata=JSON.parse(data);
-    var getusername=getdata.uname||'';
-    var getutarget=getdata.utarget||'';
-    var getudata=getdata.udata||'';
-
-    var recordmsgpath=path.join(__dirname,"../resource/live_data.txt");
-    var global_datapath=path.join(__dirname,"../resource/global_data.json");
-    var recordmsg=fs.readFileSync(recordmsgpath,'utf-8');
-    var globaldata=JSON.parse(fs.readFileSync(global_datapath,'utf-8'));
-
-    if(getutarget=='join'){
-      if(!globaldata.onlineusers.some(nowusername=>{return nowusername==getusername})){
-        globaldata.onlineusers.push(getusername);
-        fs.writeFileSync(global_datapath,JSON.stringify(globaldata));
-      }
-      var senddata=JSON.stringify({
-        'onlineusers':globaldata.onlineusers,
-        'recordmsg':recordmsg
-      });
-      serversocket.write(senddata,function () {
-        console.log('server join finish send');
-      });
-
-    }
-    else if(getutarget=='speak'){
-      var speakmsg=getusername+' : '+getudata+'\n';
-      fs.writeFileSync(recordmsgpath,speakmsg,{flag:'a'});
-      var newrecordmsg=fs.readFileSync(recordmsgpath,'utf-8');
-      var senddata=JSON.stringify({
-        'recordmsg':newrecordmsg
-      });
-      if(senddata!==undefined){
-        serversocket.write(senddata,function () {
-          console.log('server speak finish send');
-        });
-      }
-    }
-    else if(getutarget=='leave'){
-      var usernameindex=globaldata.onlineusers.indexOf(getusername);
-      globaldata.onlineusers.splice(usernameindex,1);
-      fs.writeFileSync(global_datapath,JSON.stringify(globaldata));
-    }
-
-
-
-  })
-
-  serversocket.on('end',function () {
-    console.log('server disconneted');
-  })
-
-
-
-});
-
+var talk_server = server_producer.talk_server_create();
+server_producer.photo_server_create();
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -95,16 +33,16 @@ var talk_server=net.createServer(function (serversocket) {
 
 
 server.listen(port);
-talk_server.listen(talk_port,onListening);
-
-server.on('error', onError);
-server.on('listening', function () {
+talk_server.listen(talk_port, function () {
   console.log('talk_server on listening!');
 });
 
-function onrecivedata() {
 
-}
+
+server.on('error', onError);
+server.on('listening', onListening);
+
+
 
 
 

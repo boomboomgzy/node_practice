@@ -1,12 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var http=require('http');
-    dns=require('dns');
-    fs=require('fs');
-    url=require('url');
-    querystring=require('querystring');
-    util=require('util');
-    path=require('path');
+var http = require('http'),
+    dns = require('dns'),
+    fs = require('fs'),
+    url = require('url'),
+    querystring = require('querystring'),
+    util = require('util'),
+    path = require('path')
 var session_service=require('../service/session_service');
 
 
